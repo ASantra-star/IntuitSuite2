@@ -417,6 +417,21 @@ select.lv{font:inherit;font-size:13px;border:1px solid var(--line-2);border-radi
   .steps{flex-wrap:nowrap}
 }
 
+/* ---------- v6 additions ---------- */
+.ent-table td{vertical-align:top}
+.ent-table .bar{height:6px;background:var(--tofu);border-radius:999px;overflow:hidden;width:120px;margin-top:6px}
+.ent-table .bar span{display:block;height:100%;background:var(--blue);border-radius:999px}
+.ent-table .bar.done span{background:var(--good)}
+.exc{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.exc a,.exc span.x{font-size:13px;text-decoration:none;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;color:var(--ink-2);background:#fff}
+.exc a:hover{border-color:var(--blue);color:var(--blue)}
+.exc .done{color:var(--good);border-color:#B8E0C4;background:var(--good-bg)}
+.lock{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:18px}
+.lock p{margin:0;font-size:14px;color:var(--ink-2)}
+.pl td.n,.pl th.n{text-align:right}
+.pl tr.total td{font-weight:700;border-top:2px solid var(--line-2)}
+.pl .neg{color:var(--bad)} .pl .pos{color:var(--good)}
+.why-btn{text-decoration:none;display:inline-block;border:1px solid var(--blue-100);background:var(--blue-50);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
 /* ---------- v5 additions ---------- */
 [data-bpanel][hidden]{display:none}
 table.log[style*="white-space:normal"] th,table.log[style*="white-space:normal"] td{white-space:normal}
@@ -549,8 +564,8 @@ body.annotate .legend{display:flex}
     <nav class="nav">
       <a href="#/home" data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
       <a href="#/board" data-nav="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Board pack</a>
-      <button data-soon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
-      <button data-soon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/><path d="M9 9l2 5M15 9l-2 5"/></svg>Entities</button>
+      <a href="#/reports" data-nav="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</a>
+      <a href="#/entities" data-nav="entities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/><path d="M9 9l2 5M15 9l-2 5"/></svg>Entities</a>
       <div class="nav-group">Intuit Intelligence</div>
       <button data-open-agent><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Finance Agent</button>
       <a href="#/controls" data-nav="controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Controls<span class="count" id="ctrlCount">2</span></a>
@@ -572,6 +587,12 @@ body.annotate .legend{display:flex}
 
     <!-- HOME / RESOLVED (rendered) -->
     <section class="view" id="v-home" hidden></section>
+
+    <!-- ENTITIES (rendered) -->
+    <section class="view" id="v-entities" hidden></section>
+
+    <!-- REPORTS (rendered) -->
+    <section class="view" id="v-reports" hidden></section>
 
     <!-- CEO ANSWER (rendered) -->
     <section class="view" id="v-ceo" hidden></section>
@@ -1060,6 +1081,8 @@ const PAIN = {
   board: 'Pains: writing the narrative; AI that tells you what you want to hear. Every sentence cites its number, and the agent flags what it couldn\'t verify.',
   evidence: 'Pain: a number she can\'t defend. The path runs from conclusion to bridge to the individual records, and names who can fix it.',
   ceo: 'The goal in the persona sentence: a reliable cash outlook for the CEO. One sourced answer, clearly marked preliminary, and the same number if the CEO asks the AI himself.',
+  entities: 'Case pain: entity-level close status and unclear ownership. Every entity shows progress, open exceptions and a named owner, and the period can only be locked when all five are ready.',
+  reports: 'Case pain: explaining why a number changed. Every variance in the standard report links to the records behind it.',
   resolved: 'Payoff: the same dashboard, now saying what was fixed, by whom, and why the numbers moved.'
 };
 let current = 'start';
@@ -1139,6 +1162,73 @@ function kpisHTML(resolved){
       <div class="card kpi"><div class="label">Gross margin</div><div class="value">${e.m[i]}</div><div class="delta ${down(e.md[i])?'down':'flat'}">${e.md[i]}</div></div>
       <div class="card kpi ${resolved?'':'alert'}" data-tag="new"><div class="label">Fixed charge coverage${group?'':' (group)'}</div><div class="value">${resolved?'1.31x':'1.19x'}</div><div class="delta ${resolved?'up':'down'}">${resolved?'Passes 1.25x minimum':'Below 1.25x minimum'}</div><div class="sub">${resolved?'Certificate due Nov 20':'Caused by the data gap, not the business'}</div></div>
       <div class="card kpi"><div class="label">Bank matches</div><div class="value">96%</div><div class="delta up">1,284 of 1,337 matched</div></div>`;
+}
+
+/* ---------- Entities ---------- */
+function renderEntities(resolved){
+  const fx=resolved||S.replayed, ic=resolved||S.expertDone;
+  const E=[
+    {n:'Holdings',own:['RA','Renee Alvarez',''],done:4,tot:4,fresh:['Bank feed','5:58 AM',true],exc:[]},
+    {n:'Properties',own:['JP','Jen Park','av-a'],done:4,tot:4,fresh:['Bank feed','5:58 AM',true],exc:[]},
+    {n:'Supply',own:['JP','Jen Park','av-a'],done:2+(ic?1:0)+(resolved||S.taxRouted?1:0),tot:4,fresh:['SupplyTrack','5:41 AM',true],exc:[
+      ic?['done','Intercompany with Builders, resolved']:['#/expert','Intercompany with Builders, $42,180'],
+      (resolved||S.taxRouted)?['done','Indiana sales tax, with specialist']:['#/home','Indiana sales tax, needs routing']]},
+    {n:'Builders',own:['RA','Renee Alvarez',''],done:2+(ic?1:0)+(resolved?1:0),tot:5,fresh:['FieldPro','5:12 AM',true],exc:[
+      ic?['done','Intercompany with Supply, resolved']:['#/expert','Intercompany with Supply, $42,180'],
+      ['#/agent','Job codes: waiting on Marcus Bell']]},
+    {n:'Home Services',own:['SO','Sam Okoye (data), Jen Park (close)','sam'],done:2+(fx?2:0),tot:5,fresh:['FieldPro', fx?'9:04 AM':'6 days old', fx],exc:[
+      fx?['done','Revenue gap fixed, 214 invoices posted']:['#/evidence','Revenue gap, $186K: sync paused'],
+      (resolved||S.expenseRule)?['done','9 expense claims on hold']:['#/controls','9 expense claims, $639']]}
+  ];
+  const ready=E.filter(e=>e.done===e.tot).length;
+  const rows=E.map(e=>{
+    const pct=Math.round(e.done/e.tot*100), full=e.done===e.tot;
+    const open=e.exc.filter(x=>x[0]!=='done').length;
+    const st= full?'<span class="pill good">Ready to lock</span>': (e.exc.some(x=>x[0]==='#/evidence')?'<span class="pill bad">Blocked</span>':'<span class="pill warn">In progress</span>');
+    const exc = e.exc.length ? `<div class="exc">${e.exc.map(x=> x[0]==='done'?`<span class="x done">✓ ${x[1]}</span>`:`<a href="${x[0]}">${x[1]}</a>`).join('')}</div>` : '<span class="muted">None</span>';
+    return `<tr><td><b>${e.n}</b></td><td>${e.done} of ${e.tot} tasks<div class="bar ${full?'done':''}"><span style="width:${pct}%"></span></div></td><td>${exc}</td><td><span class="owner" style="margin:0"><span class="avatar ${e.own[2]}">${e.own[0]}</span>${e.own[1]}</span></td><td>${e.fresh[2]?'':'<span style="color:var(--bad);font-weight:600">'}${e.fresh[0]}, ${e.fresh[1]}${e.fresh[2]?'':'</span>'}</td><td>${st}</td></tr>`;
+  }).join('');
+  $('#v-entities').innerHTML=`
+    <div class="page-head"><div><h1>Entities</h1><p>October close, entity by entity: what's done, what's open, and who owns it.</p></div>
+      <div class="status-row"><span class="sample">Sample data</span><span class="pill ${ready===5?'good':'info'}"><span class="dot"></span>${ready} of 5 ready to lock</span></div></div>
+    <div class="lock" data-tag="new"><div><b>Lock October</b><p>Locking removes the "Preliminary" label everywhere, including what Tom sees. It unlocks when all five entities are ready.</p></div>
+      <button class="btn btn-primary" ${ready===5?'':'disabled'} id="lockBtn">${ready===5?'Lock October':'Lock October ('+ready+' of 5 ready)'}</button></div>
+    <div class="card" data-tag="extends"><div class="table-wrap"><table class="log ent-table" style="white-space:normal">
+      <tr><th>Entity</th><th>Close progress</th><th>Open exceptions</th><th>Owner</th><th>Data freshness</th><th>Status</th></tr>
+      ${rows}
+    </table></div>
+    <p class="row-note" style="margin-top:12px">Owners come from each entity's close checklist and integration settings, so an exception never sits without a name on it. Click an exception to open it.</p></div>
+    <div class="next"><a class="btn btn-ghost" href="#/home">Back to dashboard</a></div>`;
+  const lb=$('#lockBtn'); if(lb) lb.onclick=()=>toast('In the prototype, locking is the last step on Friday.');
+  bindCommon($('#v-entities'));
+}
+
+/* ---------- Reports ---------- */
+function renderReports(){
+  const fx=S.replayed;
+  const k=v=>(v<0?'−':'')+'$'+Math.abs(v).toLocaleString()+'K';
+  const rev=fx?7100:6914, cogs=4923, gp=rev-cogs, opex=1412, ebitda=gp-opex;
+  const F={rev:7100,cogs:4871,gp:2229,opex:1420,ebitda:809};
+  const row=(label,a,f,why,costLine)=>{ const v=costLine? f-a : a-f; const cls=v<0?'neg':(v>0?'pos':'');
+    return `<tr><td>${label}</td><td class="n">${k(a)}</td><td class="n">${k(f)}</td><td class="n ${cls}">${v===0?'$0':(v>0?'+':'')+k(v)}</td><td>${why||''}</td></tr>`; };
+  const whyRev = fx ? '<span class="muted" style="font-size:13px">On forecast after 9:04 AM fix</span>' : '<a class="why-btn" href="#/evidence">Why? 214 jobs not invoiced</a>';
+  const whyCogs = '<button class="why-btn" id="whyCogs">Why? Builders subcontractor rates</button>';
+  const whyGp = '<a class="why-btn" href="#/evidence">Why? See the bridge</a>';
+  $('#v-reports').innerHTML=`
+    <div class="page-head"><div><h1>Profit and loss, October</h1><p>Consolidated, all 5 entities, after intercompany eliminations.</p></div>
+      <div class="status-row"><span class="sample">Sample data</span><span class="pill warn"><span class="dot"></span>Preliminary</span></div></div>
+    <div class="card" data-tag="shipped"><div class="table-wrap"><table class="log pl" style="white-space:normal">
+      <tr><th>Line</th><th class="n">Actual</th><th class="n">Forecast</th><th class="n">Variance</th><th data-tag="extends">Explain</th></tr>
+      ${row('Revenue',rev,F.rev,whyRev)}
+      ${row('Cost of sales',cogs,F.cogs,whyCogs,true)}
+      <tr class="total"><td>Gross profit</td><td class="n">${k(gp)}</td><td class="n">${k(F.gp)}</td><td class="n neg">${k(gp-F.gp)}</td><td>${whyGp}</td></tr>
+      ${row('Operating expenses',opex,F.opex,'',true)}
+      <tr class="total"><td>EBITDA</td><td class="n">${k(ebitda)}</td><td class="n">${k(F.ebitda)}</td><td class="n neg">${k(ebitda-F.ebitda)}</td><td></td></tr>
+    </table></div>
+    <p class="row-note" style="margin-top:12px">Intercompany sales of $569K between Supply and Builders are eliminated. Every variance links to the records behind it, so "why did this change?" is one click, not a spreadsheet.</p></div>
+    <div class="next"><a class="btn btn-ghost" href="#/home">Back to dashboard</a></div>`;
+  const wc=$('#whyCogs'); if(wc) wc.onclick=()=>toast('Jobs B-2291 and B-2304: subcontractor rates rose after a change order (+$41,600). Plus 11 small items (+$10,400).');
+  bindCommon($('#v-reports'));
 }
 
 /* ---------- Forecast: why it changed + track record ---------- */
@@ -1346,7 +1436,7 @@ function renderHome(resolved){
         ${forecastExtras(resolved)}
       </div>
       <div class="card close" data-tag="shipped">
-        <div class="card-head"><h2>October close</h2><span class="meta">${done} of 22</span></div>
+        <div class="card-head"><h2>October close</h2><a class="meta" href="#/entities" style="color:var(--blue);text-decoration:none">${done} of 22, by entity</a></div>
         <div class="progress" aria-label="Close progress"><span style="width:${Math.round(done/22*100)}%"></span></div>
         <ul class="tasks">
           <li><span class="check done">${check}</span>Bank reconciliations<span class="by">Accounting Agent</span></li>
@@ -1769,7 +1859,7 @@ $('#menuBtn').onclick = () => $('#sidebar').classList.toggle('open');
 $$('.sidebar a').forEach(a => a.addEventListener('click', () => $('#sidebar').classList.remove('open')));
 
 /* ---------- Router ---------- */
-const VIEWS = ['start','home','agent','evidence','ceo','expert','integrations','builder','controls','board','resolved'];
+const VIEWS = ['start','home','agent','evidence','entities','reports','ceo','expert','integrations','builder','controls','board','resolved'];
 function route(){
   let h = location.hash.replace('#/','') || 'start';
   if(h==='developer') h='integrations';
@@ -1777,7 +1867,7 @@ function route(){
   current = view;
   $('#v-start').hidden = view!=='start';
   $('#app').hidden = view==='start';
-  ['home','evidence','ceo','expert','integrations','builder','controls','board'].forEach(v => $('#v-'+v).hidden = true);
+  ['home','evidence','entities','reports','ceo','expert','integrations','builder','controls','board'].forEach(v => $('#v-'+v).hidden = true);
   const sam = view==='integrations'||view==='builder';
   $('#who').innerHTML = sam ? '<span class="name">Sam Okoye</span><span class="avatar sam">SO</span>' : '<span class="name">Renee Alvarez</span><span class="avatar">RA</span>';
   $('#entity').innerHTML = sam ? 'Cedarline Group <small>Developer workspace</small>' : 'Cedarline Group <small>Consolidated, 5 entities</small>';
@@ -1786,6 +1876,8 @@ function route(){
   if(view==='expert') $('#v-expert').hidden=false;
   if(view==='evidence'){ renderEvidence(); $('#v-evidence').hidden=false; }
   if(view==='ceo'){ renderCEO(); $('#v-ceo').hidden=false; }
+  if(view==='entities'){ renderEntities(false); $('#v-entities').hidden=false; }
+  if(view==='reports'){ renderReports(); $('#v-reports').hidden=false; }
   if(view==='integrations'){ $('#v-integrations').hidden=false; renderChain(); if(S.replayed) finishReplay(false); }
   if(view==='builder'){ $('#v-builder').hidden=false; applyBuilder(); }
   if(view==='controls'){ renderControls(); $('#v-controls').hidden=false; }
@@ -1797,7 +1889,7 @@ function route(){
   $('#ctrlCount').textContent = pending; $('#ctrlCount').hidden = !pending;
   if(view==='agent') openAgent(); else hideAgent();
   setPresenter(view);
-  if(view==='evidence'){ const h=$('.steps a[data-step="home"]'); h && h.setAttribute('aria-current','step'); }
+  if(view==='evidence'||view==='entities'||view==='reports'){ const h=$('.steps a[data-step="home"]'); h && h.setAttribute('aria-current','step'); }
   if(view!=='agent') window.scrollTo(0,0);
 }
 window.addEventListener('hashchange', route);
