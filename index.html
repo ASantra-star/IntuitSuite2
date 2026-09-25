@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ET TradeIntel — Supply Chain × Market Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:       #080b12;
+  --bg2:      #0c1018;
+  --bg3:      #111620;
+  --bg4:      #171d28;
+  --bg5:      #1c2330;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.11);
+  --border3:  rgba(255,255,255,0.18);
+  --text:     #dde2ec;
+  --text2:    #7e899e;
+  --text3:    #3e4a5c;
+  --gold:     #d4a843;
+  --gold2:    rgba(212,168,67,0.12);
+  --gold3:    rgba(212,168,67,0.06);
+  --teal:     #2dd4bf;
+  --teal2:    rgba(45,212,191,0.1);
+  --green:    #22c55e;
+  --green2:   rgba(34,197,94,0.1);
+  --red:      #f43f5e;
+  --red2:     rgba(244,63,94,0.1);
+  --amber:    #f59e0b;
+  --amber2:   rgba(245,158,11,0.1);
+  --blue:     #3b82f6;
+  --blue2:    rgba(59,130,246,0.1);
+  --purple:   #a855f7;
+  --purple2:  rgba(168,85,247,0.1);
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Epilogue', sans-serif;
+  --serif:    'Playfair Display', serif;
+  --r:        8px;
+  --r-sm:     5px;
+  --r-lg:     12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  height:50px;background:var(--bg2);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 18px;gap:16px;position:fixed;
+  top:0;left:0;right:0;z-index:300;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{
+  height:30px;padding:0 10px;border-radius:6px;
+  background:linear-gradient(135deg,var(--gold),#b8862a);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:13px;font-weight:600;color:#0a0800;letter-spacing:-0.3px;
+}
+.brand-name{font-family:var(--serif);font-size:17px;font-weight:400;color:var(--text);letter-spacing:-0.3px;}
+.brand-name span{font-style:italic;color:var(--gold);}
+.tb-div{width:1px;height:18px;background:var(--border2);}
+.tb-pill{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border2);}
+.tb-pill-up{color:var(--green);border-color:rgba(34,197,94,0.2);background:var(--green2);}
+.tb-pill-dn{color:var(--red);border-color:rgba(244,63,94,0.2);background:var(--red2);}
+.tb-pill-warn{color:var(--amber);border-color:rgba(245,158,11,0.2);background:var(--amber2);}
+.dot{width:6px;height:6px;border-radius:50%;animation:blink 2s infinite;}
+.dot-g{background:var(--green);}
+.dot-r{background:var(--red);}
+.dot-a{background:var(--amber);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.groq-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;padding:3px 8px;border-radius:3px;background:var(--gold2);color:var(--gold);border:1px solid rgba(212,168,67,0.25);}
+.tb-time{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* ─── LAYOUT ─── */
+.app{display:grid;grid-template-columns:52px 220px 1fr 280px;grid-template-rows:50px 1fr;height:100vh;}
+.icon-rail{grid-row:2;grid-column:1;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;margin-top:50px;}
+.ir-btn{width:36px;height:36px;border-radius:var(--r-sm);border:none;background:transparent;color:var(--text3);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}
+.ir-btn:hover{background:var(--bg4);color:var(--text2);}
+.ir-btn.active{background:var(--gold2);color:var(--gold);border:1px solid rgba(212,168,67,0.25);}
+.ir-btn.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:20px;background:var(--gold);border-radius:0 2px 2px 0;}
+.ir-sep{width:24px;height:1px;background:var(--border);margin:4px 0;}
+.ir-tooltip{position:absolute;left:48px;background:var(--bg4);border:1px solid var(--border2);padding:4px 9px;border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200;}
+.ir-btn:hover .ir-tooltip{opacity:1;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{grid-row:2;grid-column:2;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;margin-top:50px;}
+.sb-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);}
+.sb-module-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.sb-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--text);font-style:italic;}
+.sb-body{flex:1;overflow-y:auto;padding:10px 10px;}
+.sb-section-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:8px 4px 5px;}
+.sb-item{padding:8px 9px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;border:1px solid transparent;margin-bottom:3px;}
+.sb-item:hover{background:var(--bg4);}
+.sb-item.active{background:var(--gold2);border-color:rgba(212,168,67,0.2);}
+.sb-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.sb-sym{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text);}
+.sb-item.active .sb-sym{color:var(--gold);}
+.sb-chg{font-family:var(--mono);font-size:10px;font-weight:500;}
+.sb-chg-up{color:var(--green);}
+.sb-chg-dn{color:var(--red);}
+.sb-sub{font-size:10px;color:var(--text3);}
+.sb-badge{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;font-weight:600;}
+.badge-r{background:var(--red2);color:var(--red);}
+.badge-a{background:var(--amber2);color:var(--amber);}
+.badge-g{background:var(--green2);color:var(--green);}
+.badge-b{background:var(--blue2);color:var(--blue);}
+.badge-gold{background:var(--gold2);color:var(--gold);}
+
+/* ─── MAIN ─── */
+.main{grid-row:2;grid-column:3;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;margin-top:50px;}
+.main-header{padding:16px 20px 0;border-bottom:1px solid var(--border);flex-shrink:0;}
+.mh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.mh-title{font-family:var(--serif);font-size:22px;font-weight:400;font-style:italic;color:var(--text);}
+.mh-subtitle{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:12px;}
+.tab-row{display:flex;gap:0;}
+.tab{padding:8px 15px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:var(--sans);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;letter-spacing:.2px;}
+.tab:hover{color:var(--text2);}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.main-body{flex:1;overflow-y:auto;padding:16px 20px;}
+
+/* ─── KPI ROW ─── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;}
+.kpi-label{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.kpi-val{font-size:20px;font-weight:600;line-height:1;margin-bottom:3px;}
+.kpi-delta{font-family:var(--mono);font-size:9px;}
+.kpi-delta-up{color:var(--green);}
+.kpi-delta-dn{color:var(--red);}
+.kpi-delta-warn{color:var(--amber);}
+
+/* ─── CARDS ─── */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;}
+.card-hdr{padding:11px 14px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:var(--mono);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);}
+.card-body{padding:12px 14px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.chart-h{position:relative;}
+
+/* ─── NEXUS CARDS (the combined insight) ─── */
+.nexus-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  margin-bottom:10px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;
+}
+.nexus-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.nexus-r::before{background:var(--red);}
+.nexus-a::before{background:var(--amber);}
+.nexus-g::before{background:var(--green);}
+.nexus-t::before{background:var(--teal);}
+.nexus-card:hover{background:var(--bg4);border-color:var(--border2);}
+.nexus-inner{padding:12px 14px;}
+.nexus-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.nexus-tags{display:flex;gap:5px;}
+.nexus-tag{font-family:var(--mono);font-size:8px;font-weight:600;padding:2px 6px;border-radius:2px;}
+.nt-supply{background:var(--teal2);color:var(--teal);}
+.nt-market{background:var(--gold2);color:var(--gold);}
+.nt-risk{background:var(--red2);color:var(--red);}
+.nt-opp{background:var(--green2);color:var(--green);}
+.nexus-conf{font-family:var(--mono);font-size:9px;color:var(--text3);}
+.nexus-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.nexus-body{font-size:11px;color:var(--text2);line-height:1.55;}
+.nexus-stocks{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.nexus-stock{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.ns-up{background:var(--green2);color:var(--green);}
+.ns-dn{background:var(--red2);color:var(--red);}
+.ns-watch{background:var(--amber2);color:var(--amber);}
+
+/* ─── SIGNAL ROWS ─── */
+.sig-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.sig-row:last-child{border-bottom:none;}
+.sig-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sig-main{flex:1;}
+.sig-sym{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text);}
+.sig-desc{font-size:10px;color:var(--text2);margin-top:1px;}
+.sig-right{text-align:right;}
+.sig-chg{font-family:var(--mono);font-size:11px;font-weight:600;}
+.sig-type{font-family:var(--mono);font-size:8px;color:var(--text3);margin-top:1px;}
+.sig-badge{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:600;padding:2px 6px;border-radius:2px;}
+
+/* ─── DISRUPTION ROWS ─── */
+.dis-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.dis-row:last-child{border-bottom:none;}
+.dis-sev{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;}
+.dis-body{flex:1;}
+.dis-title{font-size:11px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.dis-sub{font-size:10px;color:var(--text2);line-height:1.4;}
+.dis-right{flex-shrink:0;text-align:right;}
+.dis-ripple{font-family:var(--mono);font-size:14px;font-weight:600;}
+.dis-label{font-family:var(--mono);font-size:8px;color:var(--text3);}
+.act-btn{font-family:var(--mono);font-size:9px;padding:4px 9px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;margin-top:4px;display:block;}
+.act-btn:hover{background:var(--gold2);border-color:rgba(212,168,67,0.3);color:var(--gold);}
+.act-btn.done{background:var(--green2);border-color:rgba(34,197,94,0.3);color:var(--green);cursor:default;}
+
+/* ─── STATUS BADGES ─── */
+.status{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 7px;border-radius:2px;}
+.s-ok{background:var(--green2);color:var(--green);}
+.s-warn{background:var(--amber2);color:var(--amber);}
+.s-crit{background:var(--red2);color:var(--red);}
+.s-reroute{background:var(--blue2);color:var(--blue);}
+
+/* ─── RIGHT PANEL ─── */
+.rpanel{grid-row:2;grid-column:4;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;margin-top:50px;}
+.rp-seg{border-bottom:1px solid var(--border);flex-shrink:0;}
+.rp-seg-hdr{padding:10px 13px;display:flex;align-items:center;justify-content:space-between;}
+.rp-seg-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-weight:500;}
+.rp-live{font-family:var(--mono);font-size:8px;color:var(--green);display:flex;align-items:center;gap:4px;}
+
+/* ─── AUDIT ─── */
+.audit-item{display:flex;gap:8px;padding:7px 13px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.audit-time{font-family:var(--mono);font-size:8px;color:var(--text3);min-width:34px;padding-top:2px;}
+.audit-icon{width:14px;height:14px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;margin-top:1px;}
+.ai-ic{background:var(--gold2);color:var(--gold);}
+.act-ic{background:var(--green2);color:var(--green);}
+.alt-ic{background:var(--red2);color:var(--red);}
+.nexus-ic{background:var(--teal2);color:var(--teal);}
+.audit-text{font-size:10px;color:var(--text2);line-height:1.45;flex:1;}
+.audit-text strong{color:var(--text);font-weight:500;}
+
+/* ─── CHAT ─── */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;}
+.cmsg{display:flex;gap:7px;}
+.cmsg.user{flex-direction:row-reverse;}
+.cav{width:22px;height:22px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;font-weight:700;}
+.cav-ai{background:var(--gold2);color:var(--gold);border:1px solid rgba(212,168,67,0.25);}
+.cav-u{background:var(--bg5);color:var(--text2);border:1px solid var(--border2);}
+.cbub{padding:8px 10px;border-radius:5px;font-size:11px;line-height:1.55;max-width:88%;}
+.cbub-ai{background:var(--bg4);border:1px solid var(--border);border-radius:2px 5px 5px 5px;color:var(--text);}
+.cbub-u{background:var(--bg5);border:1px solid var(--border2);border-radius:5px 2px 5px 5px;color:var(--text2);}
+.tdots{display:flex;gap:3px;align-items:center;}
+.tdots span{width:4px;height:4px;border-radius:50%;background:var(--text3);animation:td 1.2s infinite;}
+.tdots span:nth-child(2){animation-delay:.2s;}
+.tdots span:nth-child(3){animation-delay:.4s;}
+@keyframes td{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-4px);}}
+.chips-row{padding:7px 12px;display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--border);flex-shrink:0;}
+.chip{font-family:var(--mono);font-size:8px;padding:3px 7px;border-radius:2px;border:1px solid var(--border2);color:var(--text3);cursor:pointer;background:transparent;transition:all .15s;}
+.chip:hover{border-color:var(--gold);color:var(--gold);background:var(--gold3);}
+.chat-inp-row{display:flex;border-top:1px solid var(--border);flex-shrink:0;}
+.chat-inp{flex:1;background:transparent;border:none;padding:10px 12px;font-family:var(--sans);font-size:12px;color:var(--text);outline:none;}
+.chat-inp::placeholder{color:var(--text3);}
+.chat-send{padding:0 14px;background:var(--gold);color:#0a0800;border:none;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;transition:opacity .15s;}
+.chat-send:hover{opacity:.85;}
+
+/* ─── TABLE ─── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2);}
+.tbl td:first-child{color:var(--text);font-weight:500;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--bg4);}
+
+/* ─── SUPPLY MAP ─── */
+.sc-map-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
+.sc-map-legend{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text3);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+
+/* ─── RISK CARDS ─── */
+.risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.rc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;position:relative;overflow:hidden;}
+.rc::after{content:'';position:absolute;top:0;right:0;width:2px;height:100%;}
+.rc-r::after{background:var(--red);}
+.rc-a::after{background:var(--amber);}
+.rc-g::after{background:var(--green);}
+.rc-name{font-size:11px;font-weight:500;color:var(--text);margin-bottom:5px;}
+.rc-score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.rc-score{font-family:var(--mono);font-size:18px;font-weight:600;}
+.rc-track{height:3px;background:var(--bg5);border-radius:2px;}
+.rc-fill{height:3px;border-radius:2px;transition:width 1s ease;}
+.rc-detail{font-size:10px;color:var(--text2);margin-top:5px;line-height:1.45;}
+
+/* ─── SUPPLIER ─── */
+.sup-spark{display:inline-flex;align-items:flex-end;gap:1px;height:14px;}
+.sup-bar{width:3px;border-radius:1px;}
+
+/* ─── UTILS ─── */
+.tag{display:inline-block;font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:2px;font-weight:500;margin:1px;}
+.tag-r{background:var(--red2);color:var(--red);}
+.tag-a{background:var(--amber2);color:var(--amber);}
+.tag-g{background:var(--green2);color:var(--green);}
+.tag-b{background:var(--blue2);color:var(--blue);}
+.tag-t{background:var(--teal2);color:var(--teal);}
+.fade-in{animation:fi .25s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+.hidden{display:none!important;}
+.sec-gap{margin-bottom:14px;}
+
+/* scrollbars */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">ET</div>
+    <div class="brand-name">Trade<span>Intel</span></div>
+  </div>
+  <div class="tb-div"></div>
+  <div class="tb-pill tb-pill-up"><span class="dot dot-g"></span>NIFTY 22,847 +0.42%</div>
+  <div class="tb-pill tb-pill-dn"><span class="dot dot-r"></span>SENSEX 75,310 −0.11%</div>
+  <div class="tb-div"></div>
+  <div class="tb-pill tb-pill-warn"><span class="dot dot-a"></span>3 Disruptions Active</div>
+  <div class="tb-pill tb-pill-dn"><span class="dot dot-r"></span>SLA Risk ₹2.4Cr</div>
+  <div class="tb-pill tb-pill-up"><span class="dot dot-g"></span>OTD 84.2%</div>
+  <div class="tb-right">
+    <div class="groq-tag">GROQ · LLAMA-3.3-70B</div>
+    <div class="tb-time" id="live-time">—</div>
+  </div>
+</div>
+
+<!-- ICON RAIL -->
+<div class="icon-rail">
+  <button class="ir-btn active" onclick="switchModule(this,'nexus')" title="">⬡<div class="ir-tooltip">Nexus</div></button>
+  <button class="ir-btn" onclick="switchModule(this,'market')" title="">◉<div class="ir-tooltip">Market Signals</div></button>
+  <button class="ir-btn" onclick="switchModule(this,'supply')" title="">⊞<div class="ir-tooltip">Supply Chain</div></button>
+  <div class="ir-sep"></div>
+  <button class="ir-btn" onclick="switchModule(this,'risk')" title="">◈<div class="ir-tooltip">Risk Matrix</div></button>
+  <button class="ir-btn" onclick="switchModule(this,'suppliers')" title="">◫<div class="ir-tooltip">Suppliers</div></button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-head">
+    <div class="sb-module-label" id="sb-module-label">Nexus Intelligence</div>
+    <div class="sb-title" id="sb-title">Cross-Domain Signals</div>
+  </div>
+  <div class="sb-body" id="sb-body"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="main-header">
+    <div class="mh-top">
+      <div class="mh-title" id="main-title">Nexus Intelligence</div>
+      <div id="main-badge"></div>
+    </div>
+    <div class="mh-subtitle" id="main-sub">SUPPLY CHAIN DISRUPTIONS × MARKET SIGNALS · AI CROSS-DOMAIN ANALYSIS</div>
+    <div class="tab-row" id="tab-row">
+      <button class="tab active" onclick="switchTab(this,'tab-a')">Overview</button>
+      <button class="tab" onclick="switchTab(this,'tab-b')" id="tab-b-btn">Details</button>
+      <button class="tab" onclick="switchTab(this,'tab-c')" id="tab-c-btn">Charts</button>
+    </div>
+  </div>
+  <div class="main-body">
+
+    <!-- ══════════════ NEXUS MODULE ══════════════ -->
+    <div id="mod-nexus">
+      <div id="tab-a" class="tab-panel">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Nexus Signals</div><div class="kpi-val" style="color:var(--gold)">7</div><div class="kpi-delta kpi-delta-warn">Cross-domain links</div></div>
+          <div class="kpi"><div class="kpi-label">Stock Impact</div><div class="kpi-val" style="color:var(--red)">14</div><div class="kpi-delta kpi-delta-dn">Stocks flagged</div></div>
+          <div class="kpi"><div class="kpi-label">Opportunities</div><div class="kpi-val" style="color:var(--green)">4</div><div class="kpi-delta kpi-delta-up">↑ Buy signals</div></div>
+          <div class="kpi"><div class="kpi-label">AI Actions</div><div class="kpi-val" style="color:var(--teal)">9</div><div class="kpi-delta">Executed today</div></div>
+        </div>
+        <div class="card sec-gap">
+          <div class="card-hdr"><div class="card-title">Cross-Domain Intelligence — Supply Chain × Market</div><div style="font-family:var(--mono);font-size:8px;color:var(--text3)">Click card → AI analysis</div></div>
+          <div class="card-body" id="nexus-cards-container"></div>
+        </div>
+        <div class="two-col">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-hdr"><div class="card-title">Market Signals (Top 5)</div></div>
+            <div class="card-body" id="market-signals-mini"></div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <div class="card-hdr"><div class="card-title">Active Disruptions</div></div>
+            <div class="card-body" id="disruptions-mini"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-b" class="tab-panel hidden">
+        <div class="two-col">
+          <div class="card"><div class="card-hdr"><div class="card-title">Supply→Stock Impact Map</div></div><div class="card-body" id="impact-map-detail"></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Sector Exposure</div></div><div class="card-body"><div class="chart-h" style="height:200px"><canvas id="sectorExpChart"></canvas></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Nexus Signal Detail Table</div></div>
+          <table class="tbl"><thead><tr><th>Signal</th><th>Supply Event</th><th>Stocks</th><th>Direction</th><th>AI Confidence</th><th>Action</th></tr></thead>
+          <tbody id="nexus-detail-tbody"></tbody></table>
+        </div>
+      </div>
+      <div id="tab-c" class="tab-panel hidden">
+        <div class="two-col">
+          <div class="card"><div class="card-hdr"><div class="card-title">Disruption vs Market Volatility</div></div><div class="card-body"><div class="chart-h" style="height:190px"><canvas id="disruptVolChart"></canvas></div></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">FII / DII Flow (6 months)</div></div><div class="card-body"><div class="chart-h" style="height:190px"><canvas id="flowChart"></canvas></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">On-Time Delivery × Sector Returns Correlation</div></div>
+          <div class="card-body"><div class="chart-h" style="height:170px"><canvas id="corrChart"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ MARKET MODULE ══════════════ -->
+    <div id="mod-market" class="hidden">
+      <div id="mkt-tab-a" class="tab-panel">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Bullish Signals</div><div class="kpi-val" style="color:var(--green)">4</div><div class="kpi-delta kpi-delta-up">High confidence</div></div>
+          <div class="kpi"><div class="kpi-label">Bearish Signals</div><div class="kpi-val" style="color:var(--red)">1</div><div class="kpi-delta kpi-delta-dn">Insider selling</div></div>
+          <div class="kpi"><div class="kpi-label">Watch List</div><div class="kpi-val" style="color:var(--amber)">1</div><div class="kpi-delta kpi-delta-warn">Pattern forming</div></div>
+          <div class="kpi"><div class="kpi-label">Avg AI Confidence</div><div class="kpi-val" style="color:var(--gold)">81%</div><div class="kpi-delta">Across 6 signals</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">NSE Signal Radar</div><div style="font-family:var(--mono);font-size:8px;color:var(--text3)">Click row → load chart + AI</div></div>
+          <table class="tbl" id="signal-table">
+            <thead><tr><th>Stock</th><th>Signal Type</th><th>Direction</th><th>Price</th><th>Change</th><th>AI Conf</th><th>Action</th></tr></thead>
+            <tbody id="signal-tbody"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Price Chart</div><div class="card-title" id="chart-sym-label" style="color:var(--gold)">— select a stock —</div></div>
+          <div class="card-body">
+            <div class="chart-h" style="height:180px"><canvas id="priceChart"></canvas></div>
+            <div id="key-levels" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="mkt-tab-b" class="tab-panel hidden">
+        <div class="two-col">
+          <div class="card"><div class="card-hdr"><div class="card-title">Pattern Scanner</div></div><div class="card-body" id="pattern-scanner"></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Backtest Success Rates</div></div><div class="card-body"><div class="chart-h" style="height:200px"><canvas id="btChart"></canvas></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Sector Momentum</div></div>
+          <div class="card-body"><div class="chart-h" style="height:180px"><canvas id="sectorChart"></canvas></div></div>
+        </div>
+      </div>
+      <div id="mkt-tab-c" class="tab-panel hidden">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Market Events — Upcoming Catalysts</div><div class="card-title" style="color:var(--teal);cursor:pointer;" onclick="analyseAllEvents()">↗ AI Analyse All</div></div>
+          <div id="events-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ SUPPLY MODULE ══════════════ -->
+    <div id="mod-supply" class="hidden">
+      <div id="sup-tab-a" class="tab-panel">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Active Disruptions</div><div class="kpi-val" style="color:var(--red)">3</div><div class="kpi-delta kpi-delta-dn">Critical + High</div></div>
+          <div class="kpi"><div class="kpi-label">At-Risk Shipments</div><div class="kpi-val" style="color:var(--amber)">14</div><div class="kpi-delta kpi-delta-warn">₹2.4Cr SLA</div></div>
+          <div class="kpi"><div class="kpi-label">Nodes Disrupted</div><div class="kpi-val" style="color:var(--red)">3/47</div><div class="kpi-delta">Rerouting active</div></div>
+          <div class="kpi"><div class="kpi-label">Inventory Cover</div><div class="kpi-val" style="color:var(--amber)">11d</div><div class="kpi-delta kpi-delta-warn">Below 14d target</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Critical Disruptions</div><div style="font-family:var(--mono);font-size:8px;color:var(--text3)">Ripple score = stock market impact</div></div>
+          <div class="card-body" id="disruptions-full"></div>
+        </div>
+        <div class="two-col">
+          <div class="card" style="margin-bottom:0"><div class="card-hdr"><div class="card-title">OTD Trend (7 days)</div></div><div class="card-body"><div class="chart-h" style="height:160px"><canvas id="otdChart"></canvas></div></div></div>
+          <div class="card" style="margin-bottom:0"><div class="card-hdr"><div class="card-title">Disruption Severity</div></div><div class="card-body"><div class="chart-h" style="height:160px"><canvas id="sevChart"></canvas></div></div></div>
+        </div>
+      </div>
+      <div id="sup-tab-b" class="tab-panel hidden">
+        <div class="sc-map-wrap">
+          <canvas id="scMap" style="width:100%;height:260px;display:block;"></canvas>
+          <div class="sc-map-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Operational</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Delayed</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Disrupted</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Rerouted</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Node Status</div></div>
+          <table class="tbl"><thead><tr><th>Node</th><th>Type</th><th>Region</th><th>Capacity</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="node-tbody"></tbody></table>
+        </div>
+      </div>
+      <div id="sup-tab-c" class="tab-panel hidden">
+        <div class="two-col">
+          <div class="card"><div class="card-hdr"><div class="card-title">Throughput by Region</div></div><div class="card-body"><div class="chart-h" style="height:180px"><canvas id="throughputChart"></canvas></div></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Inventory Cover by Category</div></div><div class="card-body"><div class="chart-h" style="height:180px"><canvas id="inventoryChart"></canvas></div></div></div>
+        </div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Autonomous Actions Log</div></div><div id="full-audit" style="max-height:280px;overflow-y:auto;"></div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ RISK MODULE ══════════════ -->
+    <div id="mod-risk" class="hidden">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Composite Risk</div><div class="kpi-val" style="color:var(--amber)">72/100</div><div class="kpi-delta kpi-delta-warn">High threshold</div></div>
+        <div class="kpi"><div class="kpi-label">SLA Breach Prob</div><div class="kpi-val" style="color:var(--red)">34%</div><div class="kpi-delta kpi-delta-dn">↑8% this week</div></div>
+        <div class="kpi"><div class="kpi-label">Portfolio Exposure</div><div class="kpi-val" style="color:var(--red)">₹18.4Cr</div><div class="kpi-delta kpi-delta-warn">Linked stocks</div></div>
+        <div class="kpi"><div class="kpi-label">Mitigations Active</div><div class="kpi-val" style="color:var(--green)">6</div><div class="kpi-delta kpi-delta-up">AI-triggered</div></div>
+      </div>
+      <div class="risk-grid" id="risk-grid"></div>
+      <div class="two-col">
+        <div class="card"><div class="card-hdr"><div class="card-title">30-Day Risk Trend</div></div><div class="card-body"><div class="chart-h" style="height:160px"><canvas id="riskTrendChart"></canvas></div></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">SLA Breach by Client</div></div><div class="card-body"><div class="chart-h" style="height:160px"><canvas id="slaChart"></canvas></div></div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ SUPPLIERS MODULE ══════════════ -->
+    <div id="mod-suppliers" class="hidden">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Total Suppliers</div><div class="kpi-val">64</div><div class="kpi-delta">Registered</div></div>
+        <div class="kpi"><div class="kpi-label">High-Risk</div><div class="kpi-val" style="color:var(--red)">7</div><div class="kpi-delta kpi-delta-warn">Action needed</div></div>
+        <div class="kpi"><div class="kpi-label">Avg Lead Time</div><div class="kpi-val" style="color:var(--amber)">18d</div><div class="kpi-delta kpi-delta-dn">↑3d vs target</div></div>
+        <div class="kpi"><div class="kpi-label">Quality Pass Rate</div><div class="kpi-val" style="color:var(--green)">96.4%</div><div class="kpi-delta kpi-delta-up">↑1.2% MoM</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Supplier Intelligence — AI Risk Scored</div></div>
+        <table class="tbl"><thead><tr><th>Supplier</th><th>Country</th><th>Category</th><th>Risk</th><th>Lead Time</th><th>Quality</th><th>Linked Stocks</th><th>AI Flag</th></tr></thead>
+        <tbody id="supplier-tbody"></tbody></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="rpanel">
+  <div class="rp-seg" style="flex-shrink:0;">
+    <div class="rp-seg-hdr"><div class="rp-seg-title">AI Audit Trail</div><div class="rp-live"><span class="dot dot-g" style="width:5px;height:5px;"></span>LIVE</div></div>
+    <div id="audit-log" style="max-height:165px;overflow-y:auto;"></div>
+  </div>
+  <div class="chat-wrap">
+    <div class="rp-seg-hdr" style="border-bottom:1px solid var(--border);">
+      <div class="rp-seg-title">TradeIntel AI Agent</div>
+      <div class="groq-tag" style="font-size:8px;">GROQ</div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="cmsg fade-in">
+        <div class="cav cav-ai">AI</div>
+        <div class="cbub cbub-ai">TradeIntel active. I'm monitoring supply chain disruptions and cross-referencing them with NSE signals. 3 disruptions detected — Nhava Sheva port congestion is creating a bullish signal for Mundra Port stocks and a risk for FMCG logistics plays. What would you like to investigate?</div>
+      </div>
+    </div>
+    <div class="chips-row" id="chips"></div>
+    <div class="chat-inp-row">
+      <input class="chat-inp" id="chat-inp" placeholder="Ask across supply chain & markets..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">→</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script>
+const GROQ_API_KEY = "";
+
+/* ─── DATA ─── */
+const SIGNALS = [
+  {sym:'RELIANCE',name:'Reliance Industries',type:'BULK DEAL',dir:'bullish',chg:'+2.4%',conf:87,price:2847,sup:2780,res:2920,tgt:3050,sector:'Energy',link:'D003',linkReason:'Cyclone Remal disrupts western coast sea lanes — Reliance Jamnagar refinery shipments delayed. However promoter bulk buy signals confidence.'},
+  {sym:'HDFCBANK',name:'HDFC Bank',type:'BREAKOUT',dir:'bullish',chg:'+1.8%',conf:82,price:1623,sup:1580,res:1640,tgt:1750,sector:'Banking',link:null,linkReason:null},
+  {sym:'WIPRO',name:'Wipro Ltd',type:'INSIDER SELL',dir:'bearish',chg:'−1.2%',conf:74,price:478,sup:460,res:495,tgt:440,sector:'IT',link:null,linkReason:null},
+  {sym:'TATASTEEL',name:'Tata Steel',type:'RESULT BEAT',dir:'bullish',chg:'+3.1%',conf:79,price:142,sup:136,res:148,tgt:165,sector:'Metal',link:'D001',linkReason:'Port Nhava Sheva congestion delays Tata Steel coking coal imports — watch for margin pressure in Q1 FY27 despite strong Q3 result.'},
+  {sym:'GATI',name:'Gati Ltd',type:'SUPPLY SIGNAL',dir:'bearish',chg:'−2.8%',conf:81,price:134,sup:128,res:142,tgt:118,sector:'Logistics',link:'D001',linkReason:'Nhava Sheva Port congestion directly impacts Gati logistics operations. 18 shipments delayed 5–9 days. SLA breach risk.'},
+  {sym:'SUNPHARMA',name:'Sun Pharma',type:'FILING ALERT',dir:'bullish',chg:'+1.5%',conf:85,price:1680,sup:1640,res:1720,tgt:1820,sector:'Pharma',link:'D002',linkReason:'Guangzhou factory shutdown delays API raw material shipments. However USFDA approval provides strong upside buffer.'},
+];
+
+const DISRUPTIONS = [
+  {id:'D001',event:'Port Nhava Sheva Congestion',loc:'Mumbai, IN',sev:'critical',ripple:91,status:'active',impact:'18 shipments, 5–9 day delay',stocks:['GATI','BLUEDART','CONCOR'],stockDirs:['dn','dn','dn'],desc:'Berth occupancy 96%. Labour strike threat Mar 28. 18 inbound containers blocked for Auto & FMCG.'},
+  {id:'D002',event:'Guangzhou Factory Shutdown',loc:'Guangdong, CN',sev:'high',ripple:78,status:'rerouting',impact:'340 SKUs, component shortage',stocks:['SUNPHARMA','DIXON','AMBER'],stockDirs:['up','dn','dn'],desc:'Tier-1 electronics supplier halted. Power grid maintenance. Alt sourcing from Shenzhen in progress.'},
+  {id:'D003',event:'Cyclone Remal — Bay of Bengal',loc:'Eastern Coast, IN',sev:'high',ripple:64,status:'monitoring',impact:'Sea freight suspended 48–72h',stocks:['RELIANCE','SCI','ESSAR'],stockDirs:['watch','dn','dn'],desc:'IMD Category 2. Eastern sea lanes suspended. Air freight cost +280%.'},
+  {id:'D004',event:'Chennai Customs Delay',loc:'Tamil Nadu, IN',sev:'medium',ripple:42,status:'resolved',impact:'6 shipments, 3–5 days',stocks:['TVSMOTORS','ASHOKLEY'],stockDirs:['watch','watch'],desc:'DGFT documentation requirement resolved. 2 pending IEC renewals.'},
+];
+
+const NEXUS_SIGNALS = [
+  {title:'Port Congestion → Logistics Stocks Bearish',sev:'r',supTag:'SUPPLY',mktTag:'MARKET',conf:91,body:'Nhava Sheva at 96% capacity is directly impacting GATI, BLUEDART and CONCOR operations. 18 shipments delayed — SLA breach risk ₹2.4Cr. Sell signal on logistics plays.',stocks:['GATI −2.8%','BLUEDART −1.4%','CONCOR −0.9%'],dirs:['dn','dn','dn'],supId:'D001'},
+  {title:'Guangzhou Shutdown → Pharma/Electronics Split',sev:'a',supTag:'SUPPLY',mktTag:'MARKET',conf:78,body:'Component shortage from Guangzhou shutdown creates divergence: SUNPHARMA has USFDA approval as buffer (+bullish), DIXON and AMBER face raw material shortage (−bearish).',stocks:['SUNPHARMA +1.5%','DIXON −3.2%','AMBER −2.1%'],dirs:['up','dn','dn'],supId:'D002'},
+  {title:'Cyclone Disruption → Reliance Promoter Signal',sev:'t',supTag:'SUPPLY',mktTag:'NEXUS',conf:87,body:'Cyclone Remal suspends Reliance Jamnagar sea logistics. Paradoxically, promoter bulk buy of 2.1L shares at ₹2,820 signals management confidence — strong contrarian buy signal.',stocks:['RELIANCE +2.4%','SCI −1.8%'],dirs:['up','dn'],supId:'D003'},
+  {title:'Alt Supplier Activation → Shenzhen Opportunity',sev:'g',supTag:'SUPPLY',mktTag:'OPPORTUNITY',conf:72,body:'Guangzhou shutdown forces pivot to Shenzhen alternative. Stocks exposed to Vietnam/Shenzhen supply chain (KAYNES, SYRMA) benefit from rerouted procurement.',stocks:['KAYNES +1.2%','SYRMA +0.8%'],dirs:['up','up'],supId:'D002'},
+  {title:'RBI Rate Hold → Banking + Logistics Recovery',sev:'g',supTag:'MARKET',mktTag:'MARKET',conf:68,body:'RBI expected to hold repo at 6.5%. Rate stability benefits logistics financing costs. HDFCBANK breakout confirmed — banking sector provides hedging opportunity against supply chain volatility.',stocks:['HDFCBANK +1.8%','AXISBANK +0.9%'],dirs:['up','up'],supId:null},
+];
+
+const EVENTS = [
+  {date:'28 MAR',title:'RBI Monetary Policy',detail:'Repo rate expected held at 6.5%. Watch liquidity stance change for banking + logistics stocks.',impact:'high',stocks:'HDFCBANK, ICICIBANK, SBIN'},
+  {date:'31 MAR',title:'Q4 FY26 Advance Tax Data',detail:'Preliminary advance tax signals earnings trajectory. Key for IT and BFSI.',impact:'med',stocks:'TCS, INFY, HDFCBANK'},
+  {date:'07 APR',title:'Infosys Q4 Results',detail:'Street expects 2.8% QoQ revenue growth. Management guidance on FY27 is key.',impact:'high',stocks:'INFY, TCS, WIPRO'},
+];
+
+const NODES = [
+  {id:'N01',name:'Nhava Sheva Port',type:'Port',region:'Mumbai IN',cap:96,status:'disrupted',delay:'7d'},
+  {id:'N02',name:'Guangzhou Factory',type:'Manufacturing',region:'Guangdong CN',cap:0,status:'shutdown',delay:'9d'},
+  {id:'N03',name:'Mundra Port',type:'Port',region:'Gujarat IN',cap:71,status:'rerouted',delay:'2d'},
+  {id:'N04',name:'Delhi NCR Hub',type:'Warehouse',region:'Delhi IN',cap:84,status:'operational',delay:'0d'},
+  {id:'N05',name:'Shenzhen Alt Factory',type:'Manufacturing',region:'Guangdong CN',cap:62,status:'rerouted',delay:'3d'},
+  {id:'N06',name:'Bangalore WH',type:'Warehouse',region:'Karnataka IN',cap:79,status:'operational',delay:'0d'},
+];
+
+const SUPPLIERS = [
+  {name:'Tata Components',country:'India',cat:'Auto Parts',risk:22,lead:12,quality:98.2,stocks:'TATAMOTORS',flag:null},
+  {name:'Guangzhou Electronics',country:'China',cat:'Electronics',risk:87,lead:28,quality:94.1,stocks:'DIXON, AMBER',flag:'Factory shutdown · Alt: Shenzhen'},
+  {name:'Mumbai Textiles',country:'India',cat:'FMCG Pack',risk:31,lead:8,quality:99.1,stocks:'HUL, ITC',flag:null},
+  {name:'Vietnam Steel Works',country:'Vietnam',cat:'Raw Material',risk:45,lead:22,quality:96.8,stocks:'TATASTEEL',flag:'Lead time +4d vs contract'},
+  {name:'Korea Semiconductor',country:'S.Korea',cat:'Electronics',risk:52,lead:35,quality:99.4,stocks:'KAYNES',flag:'Geopolitical exposure'},
+  {name:'Bangladesh Garments',country:'Bangladesh',cat:'Apparel',risk:68,lead:18,quality:93.2,stocks:'TRENT',flag:'Quality variance — 2 batches'},
+];
+
+const RISK_CARDS = [
+  {name:'Port Congestion',score:91,detail:'Nhava Sheva 96% capacity. 18 shipments at risk. SLA penalty ₹2.4Cr.',sev:'r'},
+  {name:'Supplier Concentration',score:78,detail:'38% electronics from single Guangzhou cluster. Shenzhen pivot in progress.',sev:'r'},
+  {name:'Weather Disruption',score:64,detail:'Cyclone Remal — eastern lanes suspended. Air freight cost +280%.',sev:'a'},
+  {name:'Inventory Cover',score:55,detail:'11-day cover vs 14-day target. 18 SKUs below safety stock.',sev:'a'},
+  {name:'SLA Breach Risk',score:34,detail:'Flipkart 34%, Amazon 28%, Meesho 19%. Mitigation active.',sev:'g'},
+  {name:'Regulatory Compliance',score:28,detail:'Chennai customs delay resolved. 2 IEC renewals pending.',sev:'g'},
+];
+
+const AUDIT_ENTRIES = [
+  {time:'09:42',type:'ai',text:'<strong>Nexus Alert:</strong> Nhava Sheva congestion linked to GATI bearish signal. Ripple score 91.'},
+  {time:'09:43',type:'act',text:'<strong>Rerouted:</strong> 8 containers diverted to Mundra. ETA preserved ±1d. Cost ₹1.2L.'},
+  {time:'09:51',type:'alt',text:'<strong>Disruption:</strong> Guangzhou factory shutdown — 340 SKUs affected. DIXON flagged.'},
+  {time:'09:52',type:'ai',text:'<strong>Market Signal:</strong> SUNPHARMA USFDA approval offsets supply risk. Bullish.'},
+  {time:'10:14',type:'act',text:'<strong>Reorder:</strong> Safety stock reorder for 18 critical SKUs. ₹34L PO raised.'},
+  {time:'10:28',type:'nexus',text:'<strong>Nexus:</strong> Cyclone Remal × Reliance promoter buy — contrarian buy signal generated.'},
+  {time:'10:45',type:'act',text:'<strong>Air Freight:</strong> 3 priority shipments moved to air. ₹2.8L vs ₹6L SLA penalty.'},
+  {time:'11:02',type:'ai',text:'<strong>SLA Alert:</strong> Flipkart breach probability 34%. Escalation sent to ops.'},
+];
+
+let priceChartInst = null;
+let executedSet = new Set();
+let currentModule = 'nexus';
+let currentTab = 'tab-a';
+let chartsRendered = {};
+
+/* ─── INIT ─── */
+function init() {
+  updateTime(); setInterval(updateTime, 1000);
+  renderAudit();
+  renderSidebar('nexus');
+  renderNexusCards();
+  renderNexusMini();
+  renderChips();
+  renderSignalTable();
+  renderDisruptionsFull();
+  renderNodeTable();
+  renderRiskGrid();
+  renderSuppliers();
+  renderPatternScanner();
+  renderEventsList();
+  renderImpactMap();
+  renderNexusDetailTable();
+  setTimeout(() => {
+    renderDashboardCharts();
+    renderSupplyCharts();
+    renderRiskCharts();
+    renderNexusCharts();
+    renderMarketCharts();
+    drawScMap();
+  }, 120);
+}
+
+function updateTime() {
+  document.getElementById('live-time').textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+/* ─── MODULE SWITCH ─── */
+function switchModule(btn, mod) {
+  currentModule = mod;
+  document.querySelectorAll('.ir-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['nexus','market','supply','risk','suppliers'].forEach(m => {
+    const el = document.getElementById('mod-'+m); if(el) el.classList.toggle('hidden', m!==mod);
+  });
+  const cfgs = {
+    nexus:    {label:'Nexus Intelligence',title:'Cross-Domain Signals',sub:'SUPPLY CHAIN DISRUPTIONS × MARKET SIGNALS · AI CROSS-DOMAIN ANALYSIS',tabs:[['Overview','tab-a'],['Impact Map','tab-b'],['Correlation','tab-c']]},
+    market:   {label:'Market Intelligence',title:'NSE Signal Radar',sub:'AI-DETECTED OPPORTUNITIES · TECHNICAL PATTERNS · INSTITUTIONAL FLOWS',tabs:[['Signals','mkt-tab-a'],['Patterns','mkt-tab-b'],['Events','mkt-tab-c']]},
+    supply:   {label:'Supply Chain',title:'Disruption Monitor',sub:'REAL-TIME DISRUPTION TRACKING · AI REROUTING · SLA PROTECTION',tabs:[['Disruptions','sup-tab-a'],['Network Map','sup-tab-b'],['Analytics','sup-tab-c']]},
+    risk:     {label:'Risk Matrix',title:'Unified Risk View',sub:'SUPPLY CHAIN RISK × MARKET EXPOSURE · COMPOSITE SCORE 72/100',tabs:[]},
+    suppliers:{label:'Supplier Intelligence',title:'Supplier Risk',sub:'AI-SCORED SUPPLIER RISK · LEAD TIMES · LINKED STOCKS',tabs:[]},
+  };
+  const cfg = cfgs[mod];
+  document.getElementById('sb-module-label').textContent = cfg.label;
+  document.getElementById('sb-title').textContent = cfg.title;
+  document.getElementById('main-title').textContent = cfg.title;
+  document.getElementById('main-sub').textContent = cfg.sub;
+  const tr = document.getElementById('tab-row');
+  tr.innerHTML = '';
+  cfg.tabs.forEach(([label, id], i) => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (i===0?' active':'');
+    b.textContent = label;
+    b.onclick = () => switchTab(b, id, mod);
+    tr.appendChild(b);
+  });
+  if(cfg.tabs.length===0) tr.classList.add('hidden'); else tr.classList.remove('hidden');
+  renderSidebar(mod);
+  if(mod==='supply') setTimeout(()=>{drawScMap();}, 80);
+}
+
+function switchTab(btn, tabId, mod) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const prefix = mod==='nexus'?'tab-':mod==='market'?'mkt-tab-':mod==='supply'?'sup-tab-':'';
+  ['a','b','c'].forEach(s => {
+    const el = document.getElementById(prefix+s); if(el) el.classList.toggle('hidden', prefix+s!==tabId);
+  });
+  if(tabId==='sup-tab-b') setTimeout(drawScMap, 50);
+}
+
+/* ─── SIDEBAR ─── */
+function renderSidebar(mod) {
+  const body = document.getElementById('sb-body');
+  body.innerHTML = '';
+  if(mod==='nexus') {
+    body.innerHTML += '<div class="sb-section-label">Nexus Signals</div>';
+    NEXUS_SIGNALS.forEach((n,i) => {
+      body.innerHTML += `<div class="sb-item ${i===0?'active':''}" onclick="highlightNexus(${i},this)">
+        <div class="sb-item-top"><span class="sb-sym">${n.title.split('→')[0].trim().substring(0,18)}…</span><span class="sb-badge badge-${n.sev==='r'?'r':n.sev==='a'?'a':n.sev==='g'?'g':'b'}">${n.conf}%</span></div>
+        <div class="sb-sub">${n.supTag} × ${n.mktTag}</div>
+      </div>`;
+    });
+  } else if(mod==='market') {
+    body.innerHTML += '<div class="sb-section-label">Watchlist</div>';
+    [{sym:'NIFTY 50',chg:'+0.42',up:true},{sym:'RELIANCE',chg:'+2.40',up:true},{sym:'HDFCBANK',chg:'+1.80',up:true},{sym:'WIPRO',chg:'−1.20',up:false},{sym:'TATASTEEL',chg:'+3.10',up:true},{sym:'SUNPHARMA',chg:'+1.50',up:true},{sym:'GATI',chg:'−2.80',up:false},{sym:'INFY',chg:'+0.15',up:true}].forEach(w => {
+      body.innerHTML += `<div class="sb-item"><div class="sb-item-top"><span class="sb-sym">${w.sym}</span><span class="sb-chg ${w.up?'sb-chg-up':'sb-chg-dn'}">${w.up?'+':''}${w.chg}%</span></div></div>`;
+    });
+  } else if(mod==='supply') {
+    body.innerHTML += '<div class="sb-section-label">Disruption Feed</div>';
+    DISRUPTIONS.forEach((d,i) => {
+      const sc = d.sev==='critical'?'r':d.sev==='high'?'a':'b';
+      body.innerHTML += `<div class="sb-item" onclick="loadDisruptionToChat(${i})">
+        <div class="sb-item-top"><span class="sb-sym" style="font-size:10px;">${d.event.substring(0,20)}…</span><span class="sb-badge badge-${sc}">${d.ripple}</span></div>
+        <div class="sb-sub">${d.loc}</div>
+      </div>`;
+    });
+  } else if(mod==='risk') {
+    body.innerHTML += '<div class="sb-section-label">Risk Dimensions</div>';
+    RISK_CARDS.forEach(r => {
+      body.innerHTML += `<div class="sb-item">
+        <div class="sb-item-top"><span class="sb-sym" style="font-size:10px;">${r.name}</span><span class="sb-badge badge-${r.sev}">${r.score}</span></div>
+      </div>`;
+    });
+  } else if(mod==='suppliers') {
+    body.innerHTML += '<div class="sb-section-label">Supplier Risk</div>';
+    SUPPLIERS.forEach(s => {
+      const sc = s.risk>=70?'r':s.risk>=40?'a':'g';
+      body.innerHTML += `<div class="sb-item">
+        <div class="sb-item-top"><span class="sb-sym" style="font-size:10px;">${s.name.substring(0,16)}</span><span class="sb-badge badge-${sc}">${s.risk}</span></div>
+        <div class="sb-sub">${s.country} · ${s.cat}</div>
+      </div>`;
+    });
+  }
+}
+
+/* ─── NEXUS ─── */
+function renderNexusCards() {
+  const c = document.getElementById('nexus-cards-container');
+  c.innerHTML = '';
+  NEXUS_SIGNALS.forEach((n,i) => {
+    c.innerHTML += `<div class="nexus-card nexus-${n.sev}" onclick="nexusCardClick(${i})">
+      <div class="nexus-inner">
+        <div class="nexus-top">
+          <div class="nexus-tags"><span class="nexus-tag nt-supply">${n.supTag}</span><span class="nexus-tag ${n.mktTag==='MARKET'?'nt-market':n.mktTag==='NEXUS'?'nt-risk':'nt-opp'}">${n.mktTag}</span></div>
+          <span class="nexus-conf">AI ${n.conf}% conf</span>
+        </div>
+        <div class="nexus-title">${n.title}</div>
+        <div class="nexus-body">${n.body}</div>
+        <div class="nexus-stocks">${n.stocks.map((s,j)=>`<span class="nexus-stock ns-${n.dirs[j]}">${s}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  });
+}
+
+function nexusCardClick(i) {
+  const n = NEXUS_SIGNALS[i];
+  const prompt = `You are ET TradeIntel AI — an expert that connects supply chain disruptions with NSE stock market signals. Analyse this nexus signal in 3 concise bullet points with specific actions for an Indian investor/supply chain manager. Include ₹ amounts and specific stock names.
+
+Signal: ${n.title}
+Details: ${n.body}
+Stocks affected: ${n.stocks.join(', ')}
+${n.supId ? 'Linked disruption: '+DISRUPTIONS.find(d=>d.id===n.supId)?.desc : ''}`;
+
+  addMsg('AI', null, true);
+  const tid = lastTid();
+  callGroq([{role:'user',content:prompt}],
+    t => { const el=document.getElementById(tid); if(el) el.textContent=t; scrollChat(); addAudit({time:now(),type:'nexus',text:`<strong>Nexus Analysed:</strong> ${n.title.substring(0,40)}…`}); },
+    () => { const el=document.getElementById(tid); if(el) el.textContent=`• ${n.stocks[0]?.split(' ')[0]} — ${n.dirs[0]==='up'?'Buy at current levels, target upside 8–12% in 4 weeks.':'Watch for further downside, consider stop at support.'}\n• Supply chain link: ${n.supId?DISRUPTIONS.find(d=>d.id===n.supId)?.event+' has '+n.conf+'% probability of sustained impact':'Market-driven signal with no direct supply link.'}\n• Action: Monitor daily for 48h. Set price alert. Review SLA exposure if logistics stock.`; scrollChat(); }
+  );
+}
+
+function highlightNexus(i, el) {
+  document.querySelectorAll('.sb-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  nexusCardClick(i);
+}
+
+function renderNexusMini() {
+  const ms = document.getElementById('market-signals-mini');
+  ms.innerHTML = '';
+  SIGNALS.slice(0,5).forEach(s => {
+    const up = s.dir==='bullish';
+    ms.innerHTML += `<div class="sig-row">
+      <div class="sig-dot" style="background:${up?'var(--green)':s.dir==='watch'?'var(--amber)':'var(--red)'}"></div>
+      <div class="sig-main"><div class="sig-sym">${s.sym}</div><div class="sig-desc">${s.type}${s.link?` · <span class="tag tag-t">SC LINKED</span>`:''}</div></div>
+      <div class="sig-right"><div class="sig-chg" style="color:${up?'var(--green)':'var(--red)'}">${s.chg}</div><div class="sig-type">${s.conf}% conf</div></div>
+    </div>`;
+  });
+  const dm = document.getElementById('disruptions-mini');
+  dm.innerHTML = '';
+  DISRUPTIONS.forEach(d => {
+    const sc = d.sev==='critical'?'var(--red)':d.sev==='high'?'var(--amber)':'var(--blue)';
+    dm.innerHTML += `<div class="dis-row">
+      <div class="dis-sev" style="background:${sc};min-width:3px;"></div>
+      <div class="dis-body"><div class="dis-title">${d.event}</div><div class="dis-sub">${d.loc} · Stocks: ${d.stocks.join(', ')}</div></div>
+      <div class="dis-right"><div class="dis-ripple" style="color:${sc}">${d.ripple}</div><div class="dis-label">RIPPLE</div></div>
+    </div>`;
+  });
+}
+
+function renderNexusDetailTable() {
+  const tbody = document.getElementById('nexus-detail-tbody');
+  tbody.innerHTML = '';
+  NEXUS_SIGNALS.forEach((n,i) => {
+    const sup = n.supId ? DISRUPTIONS.find(d=>d.id===n.supId)?.event.substring(0,20)+'…' : '—';
+    tbody.innerHTML += `<tr>
+      <td>${n.title.split('→')[0].trim()}</td>
+      <td style="font-size:10px;color:var(--text3);">${sup}</td>
+      <td>${n.stocks.map((s,j)=>`<span class="nexus-stock ns-${n.dirs[j]}" style="display:inline-block;margin:1px;">${s.split(' ')[0]}</span>`).join('')}</td>
+      <td><span class="sig-badge" style="background:${n.sev==='r'?'var(--red2)':n.sev==='a'?'var(--amber2)':'var(--green2)'};color:${n.sev==='r'?'var(--red)':n.sev==='a'?'var(--amber)':'var(--green)'};">${n.dirs.includes('up')&&n.dirs.includes('dn')?'MIXED':n.dirs[0]==='up'?'BULLISH':'BEARISH'}</span></td>
+      <td style="font-family:var(--mono);color:var(--gold);">${n.conf}%</td>
+      <td><button class="act-btn" onclick="nexusCardClick(${i})">AI Brief ↗</button></td>
+    </tr>`;
+  });
+}
+
+function renderImpactMap() {
+  const el = document.getElementById('impact-map-detail');
+  el.innerHTML = '';
+  DISRUPTIONS.filter(d=>d.stocks.length).forEach(d => {
+    const sc = d.sev==='critical'?'var(--red)':d.sev==='high'?'var(--amber)':'var(--blue)';
+    el.innerHTML += `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <div style="width:3px;height:16px;background:${sc};border-radius:2px;"></div>
+        <div style="font-size:11px;font-weight:500;color:var(--text);">${d.event}</div>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--text3);">RIPPLE ${d.ripple}</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${d.stocks.map((s,j)=>`<span class="nexus-stock ns-${d.stockDirs[j]}">${s}</span>`).join('')}
+      </div>
+    </div>`;
+  });
+}
+
+/* ─── MARKET ─── */
+function renderSignalTable() {
+  const tbody = document.getElementById('signal-tbody');
+  tbody.innerHTML = '';
+  SIGNALS.forEach((s,i) => {
+    const up = s.dir==='bullish';
+    const sCls = up?'s-ok':s.dir==='watch'?'s-warn':'s-crit';
+    const sLbl = s.dir.toUpperCase();
+    tbody.innerHTML += `<tr style="cursor:pointer;" onclick="selectSignal(${i})">
+      <td><div style="font-weight:600;font-family:var(--mono);font-size:11px;">${s.sym}</div><div style="font-size:9px;color:var(--text3);">${s.name}</div></td>
+      <td><span class="tag ${s.link?'tag-t':'tag-b'}">${s.type}</span>${s.link?'<span class="tag tag-t">SC</span>':''}</td>
+      <td><span class="status ${sCls}">${sLbl}</span></td>
+      <td style="font-family:var(--mono);">₹${s.price.toLocaleString('en-IN')}</td>
+      <td style="font-family:var(--mono);color:${up?'var(--green)':'var(--red)'};">${s.chg}</td>
+      <td style="font-family:var(--mono);color:var(--gold);">${s.conf}%</td>
+      <td><button class="act-btn" onclick="event.stopPropagation();selectSignal(${i})">Chart + AI</button></td>
+    </tr>`;
+  });
+}
+
+let priceChart2 = null;
+function selectSignal(i) {
+  const s = SIGNALS[i];
+  document.getElementById('chart-sym-label').textContent = s.sym + ' — ₹' + s.price.toLocaleString('en-IN');
+  const labels=[], prices=[];
+  let p = s.price * 0.87;
+  for(let d=29;d>=0;d--) {
+    const dt = new Date(); dt.setDate(dt.getDate()-d);
+    if(dt.getDay()!==0&&dt.getDay()!==6){ labels.push(dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})); p+=((Math.random()-.46)*p*.018); prices.push(Math.round(p)); }
+  }
+  prices[prices.length-1]=s.price;
+  if(priceChart2) priceChart2.destroy();
+  priceChart2 = new Chart(document.getElementById('priceChart').getContext('2d'),{
+    type:'line',
+    data:{labels,datasets:[{data:prices,borderColor:s.dir==='bullish'?'#22c55e':'#f43f5e',backgroundColor:s.dir==='bullish'?'rgba(34,197,94,0.06)':'rgba(244,63,94,0.06)',fill:true,tension:.35,pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#3e4a5c',font:{size:9,family:'JetBrains Mono'}},grid:{display:false},ticks:{maxTicksLimit:6}},y:{ticks:{color:'#3e4a5c',font:{size:9,family:'JetBrains Mono'},callback:v=>'₹'+v.toLocaleString('en-IN')},grid:{color:'rgba(255,255,255,0.04)'}}}}
+  });
+  document.getElementById('key-levels').innerHTML = `
+    <div style="background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:8px 10px;"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);margin-bottom:3px;">SUPPORT</div><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--green);">₹${s.sup.toLocaleString('en-IN')}</div></div>
+    <div style="background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:8px 10px;"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);margin-bottom:3px;">RESISTANCE</div><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--red);">₹${s.res.toLocaleString('en-IN')}</div></div>
+    <div style="background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:8px 10px;"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);margin-bottom:3px;">AI TARGET</div><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);">₹${s.tgt.toLocaleString('en-IN')}</div></div>
+  `;
+  const prompt = `NSE stock analysis — ${s.sym} (${s.name}). Signal: ${s.type}, ${s.dir.toUpperCase()}. Price ₹${s.price}, Support ₹${s.sup}, Target ₹${s.tgt}. AI Confidence: ${s.conf}%.${s.link?' SUPPLY CHAIN LINK: '+s.linkReason:''} Give Thesis, Risk, Action in 3 lines under 80 words total.`;
+  addMsg('AI',null,true);
+  const tid=lastTid();
+  callGroq([{role:'user',content:prompt}],t=>{const el=document.getElementById(tid);if(el)el.textContent=t;scrollChat();},()=>{const el=document.getElementById(tid);if(el)el.textContent=`THESIS: ${s.type} signal with ${s.conf}% AI confidence. ${s.link?s.linkReason:'Technical setup confirmed on daily chart.'}\nRISK: Break below ₹${s.sup} invalidates. Sector rotation risk.\nACTION: ${s.dir==='bullish'?'BUY':'SELL'} ₹${s.price} · Stop ₹${s.sup} · Target ₹${s.tgt}`;scrollChat();});
+}
+
+function renderPatternScanner() {
+  const el = document.getElementById('pattern-scanner');
+  const patterns = [{title:'Breakout Candidates',rows:[{sym:'HDFCBANK',d:'Above 200-DMA + 3× vol',v:'+1.8%',up:true},{sym:'TATASTEEL',d:'Weekly channel break',v:'+3.1%',up:true}]},{title:'RSI Oversold',rows:[{sym:'WIPRO',d:'RSI 26 · Near support',v:'RSI 26',up:false},{sym:'GATI',d:'RSI 24 · SC disruption',v:'RSI 24',up:false}]},{title:'Insider Activity',rows:[{sym:'RELIANCE',d:'Promoter 2.1L shares',v:'₹59Cr',up:true},{sym:'SUNPHARMA',d:'Director 50K shares',v:'₹8Cr',up:true}]}];
+  el.innerHTML = '';
+  patterns.forEach(p => {
+    el.innerHTML += `<div style="margin-bottom:12px;"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">${p.title}</div>${p.rows.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);"><div><div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);">${r.sym}</div><div style="font-size:9px;color:var(--text3);">${r.d}</div></div><div style="font-family:var(--mono);font-size:10px;font-weight:600;color:${r.up?'var(--green)':'var(--red)'};">${r.v}</div></div>`).join('')}</div>`;
+  });
+}
+
+function renderEventsList() {
+  const el = document.getElementById('events-list');
+  el.innerHTML = '';
+  EVENTS.forEach((e,i) => {
+    const ic = e.impact==='high'?'r':'a';
+    el.innerHTML += `<div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);min-width:40px;padding-top:2px;">${e.date}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px;">${e.title}</div>
+        <div style="font-size:10px;color:var(--text2);">${e.detail}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:3px;font-family:var(--mono);">${e.stocks}</div>
+        <div id="ev-ai-${i}" style="display:none;margin-top:7px;font-size:10px;color:var(--text2);border-left:2px solid var(--amber);padding-left:8px;line-height:1.5;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+        <span class="tag tag-${ic}" style="font-size:9px;">${e.impact.toUpperCase()}</span>
+        <button class="act-btn" onclick="analyseEvent(${i})">AI ↗</button>
+      </div>
+    </div>`;
+  });
+}
+
+function analyseEvent(i) {
+  const e = EVENTS[i];
+  const el = document.getElementById('ev-ai-'+i);
+  el.style.display='block'; el.innerHTML='<div class="tdots"><span></span><span></span><span></span></div>';
+  callGroq([{role:'user',content:`Indian market event analysis in 2 sentences. Event: ${e.title} on ${e.date}. Context: ${e.detail}. Stocks: ${e.stocks}. Be specific about direction and ₹ impact.`}],
+    t=>{el.innerHTML='⬦ '+t;},
+    ()=>{el.innerHTML=`⬦ This event is likely to cause short-term volatility in ${e.stocks.split(',')[0]} and peers. Monitor opening price action for directional confirmation.`;});
+}
+
+function analyseAllEvents() { EVENTS.forEach((_,i)=>analyseEvent(i)); }
+
+/* ─── SUPPLY CHAIN ─── */
+function renderDisruptionsFull() {
+  const el = document.getElementById('disruptions-full');
+  el.innerHTML = '';
+  DISRUPTIONS.forEach((d,i) => {
+    const sc = d.sev==='critical'?'var(--red)':d.sev==='high'?'var(--amber)':'var(--blue)';
+    const sCls = d.status==='active'?'s-crit':d.status==='rerouting'?'s-reroute':d.status==='resolved'?'s-ok':'s-warn';
+    el.innerHTML += `<div class="dis-row" style="cursor:pointer;" onclick="loadDisruptionToChat(${i})">
+      <div class="dis-sev" style="background:${sc};min-width:3px;"></div>
+      <div class="dis-body">
+        <div class="dis-title">${d.event} <span class="tag tag-${d.sev==='critical'?'r':d.sev==='high'?'a':'b'}">${d.id}</span></div>
+        <div class="dis-sub">${d.loc} · ${d.desc}</div>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">${d.stocks.map((s,j)=>`<span class="nexus-stock ns-${d.stockDirs[j]}">${s}</span>`).join('')}</div>
+      </div>
+      <div class="dis-right">
+        <div class="dis-ripple" style="color:${sc}">${d.ripple}</div>
+        <div class="dis-label">RIPPLE</div>
+        <span class="status ${sCls}" style="margin-top:4px;">${d.status.toUpperCase()}</span>
+        <button class="act-btn ${executedSet.has(i)?'done':''}" onclick="event.stopPropagation();execAction(${i},this)" style="margin-top:4px;">${executedSet.has(i)?'✓ Executed':'AI Mitigate'}</button>
+      </div>
+    </div>`;
+  });
+}
+
+function execAction(i, btn) {
+  if(executedSet.has(i)) return;
+  executedSet.add(i);
+  btn.classList.add('done'); btn.textContent='✓ Executed';
+  addAudit({time:now(),type:'act',text:`<strong>Executed:</strong> AI mitigation for ${DISRUPTIONS[i].event.substring(0,30)}. Rerouting + reorder triggered.`});
+}
+
+function loadDisruptionToChat(i) {
+  const d = DISRUPTIONS[i];
+  const prompt = `Supply chain AI agent. Disruption: ${d.event} at ${d.loc}. Ripple ${d.ripple}/100. ${d.desc}. Stocks: ${d.stocks.join(', ')}. Give 3 specific action bullets for ops team AND one stock market implication. Under 90 words. Use ₹.`;
+  addMsg('AI',null,true);
+  const tid=lastTid();
+  callGroq([{role:'system',content:'You are ET TradeIntel AI — expert in Indian supply chain and NSE market cross-analysis. Be concise and specific.'},{role:'user',content:prompt}],
+    t=>{const el=document.getElementById(tid);if(el)el.textContent=t;scrollChat();},
+    ()=>{const el=document.getElementById(tid);if(el)el.textContent=`• Reroute containers to Mundra Port — saves ₹6L SLA penalty at ₹1.2L cost.\n• Activate Shenzhen alternative supplier for ${d.stocks[0]} exposure — 3-day lead time increase.\n• Market implication: ${d.stockDirs[0]==='dn'?d.stocks[0]+' is a sell near resistance — supply disruption materially impacts margins.':'Contrarian opportunity in '+d.stocks[0]+' — supply shock is transient.'}`;scrollChat();});
+}
+
+function renderNodeTable() {
+  const tbody = document.getElementById('node-tbody');
+  tbody.innerHTML = '';
+  NODES.forEach((n,i) => {
+    const sCls = n.status==='disrupted'||n.status==='shutdown'?'s-crit':n.status==='rerouted'?'s-reroute':n.status==='delayed'?'s-warn':'s-ok';
+    const capC = n.cap>=80?'var(--red)':n.cap>=60?'var(--amber)':'var(--green)';
+    tbody.innerHTML += `<tr>
+      <td style="font-family:var(--mono);font-size:10px;">${n.id}</td>
+      <td>${n.name}</td>
+      <td><span class="tag tag-b">${n.type}</span></td>
+      <td style="font-size:10px;color:var(--text3);">${n.region}</td>
+      <td><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:3px;background:var(--bg5);border-radius:2px;min-width:40px;"><div style="width:${n.cap}%;height:100%;background:${capC};border-radius:2px;"></div></div><span style="font-family:var(--mono);font-size:9px;color:${capC};">${n.cap}%</span></div></td>
+      <td><span class="status ${sCls}">${n.status.toUpperCase()}</span></td>
+      <td><button class="act-btn" onclick="this.textContent='✓ Done';this.classList.add('done');">Reroute</button></td>
+    </tr>`;
+  });
+}
+
+function drawScMap() {
+  const canvas = document.getElementById('scMap'); if(!canvas) return;
+  const W = canvas.offsetWidth||600, H=260;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const nodes=[
+    {x:.1,y:.3,l:'Guangzhou',c:'#f43f5e',t:'⚠'},{x:.1,y:.65,l:'Shenzhen',c:'#3b82f6',t:'↺'},
+    {x:.32,y:.22,l:'Nhava Sheva',c:'#f43f5e',t:'⚠'},{x:.32,y:.5,l:'Mundra',c:'#3b82f6',t:'↺'},
+    {x:.32,y:.78,l:'Chennai',c:'#f59e0b',t:'~'},{x:.55,y:.15,l:'Delhi Hub',c:'#22c55e',t:'✓'},
+    {x:.55,y:.48,l:'Mumbai WH',c:'#22c55e',t:'✓'},{x:.55,y:.78,l:'Bangalore',c:'#22c55e',t:'✓'},
+    {x:.8,y:.25,l:'Flipkart',c:'#2dd4bf',t:'C'},{x:.8,y:.52,l:'Amazon IN',c:'#2dd4bf',t:'C'},
+    {x:.8,y:.78,l:'Meesho',c:'#2dd4bf',t:'C'},
+  ];
+  const edges=[[0,2,'#f43f5e',1,true],[0,3,'#3b82f6',2,false],[1,3,'#3b82f6',2,false],[2,5,'#f43f5e',1,true],[3,5,'#3b82f6',2,false],[3,6,'#3b82f6',2,false],[4,6,'#f59e0b',1,false],[4,7,'#22c55e',1,false],[5,8,'#22c55e',1,false],[6,8,'#22c55e',1,false],[6,9,'#22c55e',1,false],[7,10,'#22c55e',1,false]];
+  edges.forEach(([a,b,c,w,dashed])=>{
+    const na=nodes[a],nb=nodes[b];
+    ctx.beginPath(); ctx.moveTo(na.x*W,na.y*H); ctx.lineTo(nb.x*W,nb.y*H);
+    ctx.strokeStyle=c+'66'; ctx.lineWidth=w; ctx.setLineDash(dashed?[5,4]:[]);
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  nodes.forEach(n=>{
+    const x=n.x*W,y=n.y*H;
+    ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2); ctx.fillStyle=n.c+'25'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fillStyle=n.c; ctx.fill();
+    ctx.font='9px JetBrains Mono'; ctx.fillStyle='#7e899e'; ctx.textAlign='center'; ctx.fillText(n.l,x,y+18);
+  });
+}
+
+/* ─── RISK ─── */
+function renderRiskGrid() {
+  const grid = document.getElementById('risk-grid');
+  grid.innerHTML = '';
+  RISK_CARDS.forEach(r => {
+    const c = r.sev==='r'?'var(--red)':r.sev==='a'?'var(--amber)':'var(--green)';
+    grid.innerHTML += `<div class="rc rc-${r.sev}">
+      <div class="rc-name">${r.name}</div>
+      <div class="rc-score-row"><span class="rc-score" style="color:${c}">${r.score}</span><span style="font-family:var(--mono);font-size:8px;color:var(--text3);">/100</span></div>
+      <div class="rc-track"><div class="rc-fill" style="width:${r.score}%;background:${c};"></div></div>
+      <div class="rc-detail">${r.detail}</div>
+    </div>`;
+  });
+}
+
+/* ─── SUPPLIERS ─── */
+function renderSuppliers() {
+  const tbody = document.getElementById('supplier-tbody');
+  tbody.innerHTML = '';
+  SUPPLIERS.forEach(s => {
+    const sc = s.risk>=70?'r':s.risk>=40?'a':'g';
+    const c = s.risk>=70?'var(--red)':s.risk>=40?'var(--amber)':'var(--green)';
+    const sparks = [92,94,s.quality-2,s.quality-1,s.quality].map(v=>`<div class="sup-bar" style="height:${Math.round((v-88)/12*14)}px;background:${v>=96?'var(--green)':'var(--amber)'}"></div>`).join('');
+    tbody.innerHTML += `<tr>
+      <td>${s.name}</td>
+      <td><span class="tag tag-b">${s.country}</span></td>
+      <td style="color:var(--text2);">${s.cat}</td>
+      <td><span style="font-family:var(--mono);font-size:12px;font-weight:600;color:${c};">${s.risk}</span><span style="font-family:var(--mono);font-size:8px;color:var(--text3);">/100</span></td>
+      <td style="font-family:var(--mono);color:${s.lead>20?'var(--amber)':'var(--text2)'};">${s.lead}d</td>
+      <td><div style="display:flex;align-items:center;gap:5px;"><div class="sup-spark">${sparks}</div><span style="font-family:var(--mono);font-size:9px;color:${s.quality>=97?'var(--green)':'var(--amber)'};">${s.quality}%</span></div></td>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--teal);">${s.stocks}</td>
+      <td style="font-size:10px;color:${s.flag?'var(--amber)':'var(--text3)'};">${s.flag||'—'}</td>
+    </tr>`;
+  });
+}
+
+/* ─── CHARTS ─── */
+function mkChart(id,type,data,opts){ const el=document.getElementById(id);if(!el)return;const existing=Chart.getChart(el);if(existing)existing.destroy();return new Chart(el.getContext('2d'),{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}}); }
+const gridColor='rgba(255,255,255,0.04)';
+const tx={color:'#3e4a5c',font:{size:9,family:'JetBrains Mono'}};
+
+function renderDashboardCharts() {
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  mkChart('otdChart','line',{labels:days,datasets:[{data:[91,88,90,87,85,86,84],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#22c55e',borderWidth:1.5},{data:Array(7).fill(90),borderColor:'rgba(212,168,67,0.4)',borderDash:[4,4],fill:false,pointRadius:0,borderWidth:1}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{min:80,max:95,ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}}}});
+  mkChart('sevChart','bar',{labels:days,datasets:[{data:[1,0,2,1,3,2,3],backgroundColor:'rgba(244,63,94,0.65)',borderRadius:3},{data:[2,3,1,4,2,3,2],backgroundColor:'rgba(245,158,11,0.5)',borderRadius:3},{data:[3,2,4,2,1,3,4],backgroundColor:'rgba(59,130,246,0.4)',borderRadius:3}]},{scales:{x:{stacked:true,ticks:tx,grid:{display:false}},y:{stacked:true,ticks:tx,grid:{color:gridColor}}}});
+}
+
+function renderSupplyCharts() {
+  mkChart('throughputChart','bar',{labels:['Mumbai','Delhi','Bangalore','Chennai','Kolkata','Hyd'],datasets:[{data:[8420,6340,4120,3890,2100,3240],backgroundColor:'rgba(45,212,191,0.55)',borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:tx,grid:{color:gridColor}}}});
+  mkChart('inventoryChart','bar',{labels:['Electronics','Auto','FMCG','Pharma','Apparel'],datasets:[{data:[8,14,11,22,9],backgroundColor:['rgba(244,63,94,0.65)','rgba(34,197,94,0.5)','rgba(245,158,11,0.55)','rgba(34,197,94,0.5)','rgba(244,63,94,0.55)'],borderRadius:3},{data:Array(5).fill(14),type:'line',borderColor:'rgba(212,168,67,0.5)',borderDash:[4,4],fill:false,pointRadius:0,borderWidth:1.2}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>v+'d'},grid:{color:gridColor}}}});
+  const auditEl = document.getElementById('full-audit');
+  if(auditEl){ auditEl.innerHTML=''; AUDIT_ENTRIES.forEach(e=>{ const ic=e.type==='ai'?'ai-ic':e.type==='act'?'act-ic':e.type==='nexus'?'nexus-ic':'alt-ic'; const ch=e.type==='ai'?'AI':e.type==='act'?'✓':e.type==='nexus'?'N':'!'; auditEl.innerHTML+=`<div class="audit-item"><div class="audit-time">${e.time}</div><div class="audit-icon ${ic}">${ch}</div><div class="audit-text">${e.text}</div></div>`; }); }
+}
+
+function renderRiskCharts() {
+  const t30=Array.from({length:30},(_,i)=>Math.round(50+20*Math.sin(i/4)+Math.random()*8));
+  t30[28]=71;t30[29]=72;
+  mkChart('riskTrendChart','line',{labels:Array.from({length:30},(_,i)=>'D-'+(29-i)),datasets:[{data:t30,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.07)',fill:true,tension:.4,pointRadius:0,borderWidth:1.5}]},{scales:{x:{ticks:{display:false},grid:{display:false}},y:{min:30,max:100,ticks:tx,grid:{color:gridColor}}}});
+  mkChart('slaChart','bar',{labels:['Flipkart','Amazon','Meesho','Jiomart','Nykaa'],datasets:[{data:[34,28,19,12,8],backgroundColor:['rgba(244,63,94,0.7)','rgba(244,63,94,0.5)','rgba(245,158,11,0.6)','rgba(245,158,11,0.4)','rgba(34,197,94,0.5)'],borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}}}});
+}
+
+function renderNexusCharts() {
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  mkChart('disruptVolChart','line',{labels:days,datasets:[{label:'Disruptions',data:[1,1,3,4,5,4,3],borderColor:'#f43f5e',borderWidth:1.5,tension:.4,pointRadius:2,fill:false},{label:'VIX Proxy',data:[14,15,18,22,24,21,19],borderColor:'#f59e0b',borderWidth:1.5,tension:.4,pointRadius:0,fill:false,borderDash:[4,4]}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:tx,grid:{color:gridColor}}}});
+  mkChart('flowChart','bar',{labels:['Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[{label:'FII',data:[-2840,1230,-980,3450,-1200,2100],backgroundColor:'rgba(59,130,246,0.55)',borderRadius:3},{label:'DII',data:[3100,980,1870,-1200,2400,1650],backgroundColor:'rgba(34,197,94,0.45)',borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>'₹'+(v/1000).toFixed(1)+'K'},grid:{color:gridColor}}}});
+  mkChart('corrChart','bar',{labels:['Banking','Logistics','Metals','Pharma','FMCG','IT'],datasets:[{label:'OTD Impact',data:[1.2,-3.4,2.8,0.8,-1.1,0.2],backgroundColor:d=>d.parsed?.y>=0?'rgba(34,197,94,0.6)':'rgba(244,63,94,0.6)',borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}}}});
+  mkChart('sectorExpChart','bar',{labels:['Metal','Logistics','Pharma','IT','FMCG','Banking','Energy'],datasets:[{data:[4.7,-3.2,2.1,-0.8,-1.1,3.2,2.8],backgroundColor:d=>d.parsed?.y>=0?'rgba(34,197,94,0.6)':'rgba(244,63,94,0.6)',borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}}}});
+}
+
+function renderMarketCharts() {
+  mkChart('btChart','bar',{labels:['Breakout','Golden X','Bull Flag','Cup&Handle','Dbl Bottom'],datasets:[{data:[72,68,65,71,74],backgroundColor:d=>d.parsed?.y>=70?'rgba(34,197,94,0.6)':'rgba(212,168,67,0.5)',borderRadius:3}]},{indexAxis:'y',scales:{x:{min:0,max:100,ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}},y:{ticks:tx,grid:{display:false}}}});
+  mkChart('sectorChart','bar',{labels:['Metal','Energy','Banking','Pharma','FMCG','Auto','IT','Realty'],datasets:[{data:[4.7,2.8,3.2,2.1,0.3,1.4,-0.8,-1.2],backgroundColor:d=>d.parsed?.y>=0?'rgba(34,197,94,0.6)':'rgba(244,63,94,0.6)',borderRadius:3}]},{scales:{x:{ticks:tx,grid:{display:false}},y:{ticks:{...tx,callback:v=>v+'%'},grid:{color:gridColor}}}});
+}
+
+/* ─── AUDIT ─── */
+function renderAudit() {
+  const log = document.getElementById('audit-log');
+  log.innerHTML = '';
+  AUDIT_ENTRIES.slice(0,6).forEach(e => appendAudit(log, e));
+}
+function appendAudit(log, e) {
+  const ic=e.type==='ai'?'ai-ic':e.type==='act'?'act-ic':e.type==='nexus'?'nexus-ic':'alt-ic';
+  const ch=e.type==='ai'?'AI':e.type==='act'?'✓':e.type==='nexus'?'N':'!';
+  const div=document.createElement('div'); div.className='audit-item';
+  div.innerHTML=`<div class="audit-time">${e.time}</div><div class="audit-icon ${ic}">${ch}</div><div class="audit-text">${e.text}</div>`;
+  log.appendChild(div);
+}
+function addAudit(e) {
+  const log=document.getElementById('audit-log');
+  const ic=e.type==='ai'?'ai-ic':e.type==='act'?'act-ic':e.type==='nexus'?'nexus-ic':'alt-ic';
+  const ch=e.type==='ai'?'AI':e.type==='act'?'✓':e.type==='nexus'?'N':'!';
+  const div=document.createElement('div'); div.className='audit-item fade-in';
+  div.innerHTML=`<div class="audit-time">${e.time}</div><div class="audit-icon ${ic}">${ch}</div><div class="audit-text">${e.text}</div>`;
+  log.prepend(div);
+}
+
+/* ─── CHAT ─── */
+function renderChips() {
+  const chips=['Port impact on stocks?','Guangzhou → which stocks sell?','Reroute recommendation?','Top bullish signals?','SLA breach risk?','Best hedge for disruption?'];
+  const c=document.getElementById('chips');
+  chips.forEach(ch=>{c.innerHTML+=`<span class="chip" onclick="sendMsg('${ch}')">${ch}</span>`;});
+}
+function sendMsg(msg){document.getElementById('chat-inp').value=msg;sendChat();}
+function sendChat() {
+  const inp=document.getElementById('chat-inp'); const msg=inp.value.trim(); if(!msg)return; inp.value='';
+  addMsg('USER',msg,false); addMsg('AI',null,true);
+  const tid=lastTid();
+  const sys=`You are ET TradeIntel AI — an expert that analyses both Indian supply chain disruptions and NSE stock market signals together. Current context:
+Supply: 3 disruptions — Nhava Sheva port (96% cap, 18 shipments), Guangzhou factory shutdown (340 SKUs, DIXON/AMBER affected), Cyclone Remal (eastern sea lanes suspended).
+Market: RELIANCE +2.4% (bulk deal + SC risk), HDFCBANK +1.8% (breakout), WIPRO -1.2% (insider sell), TATASTEEL +3.1% (result beat), GATI -2.8% (SC impact), SUNPHARMA +1.5% (USFDA approval).
+Nexus insight: Nhava Sheva congestion = bearish for GATI/BLUEDART. Guangzhou shutdown = split signal (SUNPHARMA bullish, DIXON bearish). Cyclone × Reliance promoter = contrarian buy.
+Answer in 3-5 sentences. Be specific with ₹ amounts, stock names, and actionable guidance.`;
+  callGroq([{role:'system',content:sys},{role:'user',content:msg}],
+    t=>{const el=document.getElementById(tid);if(el)el.textContent=t;scrollChat();addAudit({time:now(),type:'ai',text:`<strong>Query:</strong> "${msg.substring(0,35)}…"`});},
+    ()=>{
+      const fb={'port':'Nhava Sheva port congestion (96%) is directly bearish for GATI (−2.8%) and BLUEDART. Rerouting to Mundra preserves delivery timelines at ₹1.2L extra cost vs ₹6L SLA penalty. Avoid logistics stocks until congestion clears.','guangzhou':'Guangzhou shutdown creates a divergence trade: sell DIXON (raw material shortage, 340 SKUs affected) and buy SUNPHARMA (USFDA approval offsets API supply risk). Shenzhen alternative activated — adds 3-day lead time.','bullish':'Top bullish signals: TATASTEEL (+3.1%, Q3 EBITDA beat 18%), SUNPHARMA (+1.5%, USFDA approval), HDFCBANK (+1.8%, 200-DMA breakout). RELIANCE is a contrarian buy — promoter bulk deal despite Cyclone Remal SC risk.','reroute':'Reroute recommendation: Divert 8 Nhava Sheva containers to Mundra (₹1.2L cost, ±1d delay). Book air freight for 3 priority Flipkart shipments (₹2.8L, justified vs ₹6L SLA penalty). Pause Kolkata sea freight until Cyclone Remal clears in 48–72h.','sla':'Flipkart SLA breach probability is 34% — highest risk. Immediate action: escalate to ops manager, book air freight for electronics shipments. Amazon at 28%, Meesho at 19%. Total penalty exposure ₹2.4Cr if all breach.','hedge':'Best disruption hedge: Go long on TATASTEEL (benefiting from import duty on foreign steel) and SUNPHARMA (domestic demand + USFDA tailwind). Short GATI and BLUEDART as direct SC disruption victims. This pair trade has positive expected value given current signals.','default':'Current TradeIntel summary: 3 supply disruptions affecting 14 shipments and 6 NSE stocks. Key nexus trade: Long SUNPHARMA/TATASTEEL, Short GATI/DIXON. SLA exposure ₹2.4Cr — rerouting to Mundra recommended immediately. HDFCBANK breakout is the cleanest pure-market signal unaffected by supply issues.'};
+      const key=Object.keys(fb).find(k=>msg.toLowerCase().includes(k))||'default';
+      const el=document.getElementById(tid);if(el)el.textContent=fb[key];scrollChat();
+    });
+}
+
+function addMsg(role,text,loading) {
+  const msgs=document.getElementById('chat-msgs');
+  const isAI=role==='AI';
+  const id='m-'+Date.now()+Math.random();
+  const div=document.createElement('div');
+  div.className=`cmsg fade-in${isAI?'':' user'}`;
+  div.innerHTML=`<div class="cav ${isAI?'cav-ai':'cav-u'}">${isAI?'AI':'U'}</div><div class="cbub ${isAI?'cbub-ai':'cbub-u'}" id="${id}">${loading?'<div class="tdots"><span></span><span></span><span></span></div>':(text||'')}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=99999;
+  return id;
+}
+function lastTid(){ const msgs=document.getElementById('chat-msgs'); const last=msgs.lastElementChild; return last?last.querySelector('.cbub')?.id:null; }
+function scrollChat(){document.getElementById('chat-msgs').scrollTop=99999;}
+function now(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+
+async function callGroq(messages,onSuccess,onError) {
+  if(!GROQ_API_KEY){onError&&onError();return;}
+  try {
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_API_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:300,temperature:.35,messages})});
+    const data=await res.json();
+    if(data.choices?.[0]?.message)onSuccess(data.choices[0].message.content.trim());
+    else onError&&onError();
+  }catch(e){onError&&onError();}
+}
+
+window.addEventListener('DOMContentLoaded',init);
+window.addEventListener('resize',()=>{ if(currentModule==='supply')drawScMap(); });
+</script>
+</body>
+</html>
